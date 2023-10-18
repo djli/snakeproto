@@ -12,27 +12,43 @@ public class Snake : MonoBehaviour
     public int initialSize = 6;
     public bool moveThroughWalls = false;
     Vector3 startPos = new Vector3(-20, 0, 0);
-    public static int playerOneLives = 3;
+    public static int playerOneLives = 4;
     public GameObject player2;
     private bool isScrambled = false;
     private float scrambleTimer = 0f;
+    public GameObject scramble;
+    private float lifeCD = 1.0f;
+    bool canDie = true;
 
     private List<Transform> segments = new List<Transform>();
     private Vector2Int input;
     private float nextUpdate;
+    private GameObject[] lives;
 
     private void Start()
     {
         ResetState();
+        lives = GameObject.FindGameObjectsWithTag("PlayerOneLives");
     }
 
     private void Update()
     {
+        if (playerOneLives < 0f)
+        {
+            Destroy(this.gameObject);
+        }
         scrambleTimer -= Time.deltaTime;
+        lifeCD -= Time.deltaTime;
+        if (lifeCD < 0)
+        {
+            canDie = true;
+        }
         if (scrambleTimer < 0f)
         {
             isScrambled = false;
+            scramble.GetComponent<SpriteRenderer>().enabled = false;
         }
+
         // Only allow turning up or down while moving in the x-axis
         if (direction.x != 0f)
         {
@@ -74,6 +90,7 @@ public class Snake : MonoBehaviour
     {
         isScrambled = true;
         scrambleTimer = 5.0f;
+        scramble.GetComponent<SpriteRenderer>().enabled = true;
     }
 
     private void FixedUpdate()
@@ -124,6 +141,8 @@ public class Snake : MonoBehaviour
 
     public void ResetState()
     {
+        canDie = false;
+        lifeCD = 0.5f;
         GameObject[] gos = GameObject.FindGameObjectsWithTag("SpeedUp");
         foreach (GameObject go in gos)
             Destroy(go);
@@ -201,7 +220,13 @@ public class Snake : MonoBehaviour
         }
         else if (other.gameObject.CompareTag("Obstacle"))
         {
-            playerOneLives--;
+            if (canDie)
+            {
+                Destroy(lives[playerOneLives]);
+                playerOneLives--;
+                canDie = false;
+                lifeCD = 1.0f;
+            }
             player2.GetComponent<Snake2>().ResetState();
             ResetState();
         }
@@ -213,7 +238,13 @@ public class Snake : MonoBehaviour
             }
             else
             {
-                playerOneLives--;
+                if (canDie)
+                {
+                    Destroy(lives[playerOneLives]);
+                    playerOneLives--;
+                    canDie = false;
+                    lifeCD = 1.0f;
+                }
                 player2.GetComponent<Snake2>().ResetState();
                 ResetState();
             }
