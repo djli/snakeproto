@@ -1,22 +1,24 @@
-﻿using System.Collections.Generic;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
+using static UnityEditor.Experimental.GraphView.GraphView;
 
 [RequireComponent(typeof(BoxCollider2D))]
-public class Snake : MonoBehaviour
+public class Snake2 : MonoBehaviour
 {
     public Transform segmentPrefab;
-    public Vector2Int direction = Vector2Int.right;
-    public float speed = 20f;
+    public Vector2Int direction = Vector2Int.left;
+    private float speed = 20f;
     private float speedMultiplier = 1f;
     public int initialSize = 4;
     public bool moveThroughWalls = false;
-    Vector3 startPos = new Vector3(-20, 0, 0);
-    public static int playerOneLives = 3;
-    public GameObject player2;
+    Vector3 startPos = new Vector3(20, 0, 0);
+    public static int playerTwoLives = 3;
 
     private List<Transform> segments = new List<Transform>();
     private Vector2Int input;
     private float nextUpdate;
+    public GameObject player1;
 
     private void Start()
     {
@@ -28,11 +30,11 @@ public class Snake : MonoBehaviour
         // Only allow turning up or down while moving in the x-axis
         if (direction.x != 0f)
         {
-            if (Input.GetKeyDown(KeyCode.W))
+            if (Input.GetKeyDown(KeyCode.UpArrow))
             {
                 input = Vector2Int.up;
             }
-            else if (Input.GetKeyDown(KeyCode.S))
+            else if (Input.GetKeyDown(KeyCode.DownArrow))
             {
                 input = Vector2Int.down;
             }
@@ -40,11 +42,11 @@ public class Snake : MonoBehaviour
         // Only allow turning left or right while moving in the y-axis
         else if (direction.y != 0f)
         {
-            if (Input.GetKeyDown(KeyCode.D))
+            if (Input.GetKeyDown(KeyCode.RightArrow))
             {
                 input = Vector2Int.right;
             }
-            else if (Input.GetKeyDown(KeyCode.A))
+            else if (Input.GetKeyDown(KeyCode.LeftArrow))
             {
                 input = Vector2Int.left;
             }
@@ -93,7 +95,7 @@ public class Snake : MonoBehaviour
     public void ResetState()
     {
         input = Vector2Int.zero;
-        direction = Vector2Int.right;
+        direction = Vector2Int.left;
         transform.position = startPos;
 
         // Start at 1 to skip destroying the head
@@ -135,8 +137,8 @@ public class Snake : MonoBehaviour
         }
         else if (other.gameObject.CompareTag("Obstacle"))
         {
-            playerOneLives--;
-            player2.GetComponent<Snake2>().ResetState();
+            playerTwoLives--;
+            player1.GetComponent<Snake>().ResetState();
             ResetState();
         }
         else if (other.gameObject.CompareTag("Wall"))
@@ -147,8 +149,8 @@ public class Snake : MonoBehaviour
             }
             else
             {
-                playerOneLives--;
-                player2.GetComponent<Snake2>().ResetState();
+                playerTwoLives--;
+                player1.GetComponent<Snake>().ResetState();
                 ResetState();
             }
         }
@@ -169,5 +171,4 @@ public class Snake : MonoBehaviour
 
         transform.position = position;
     }
-
 }
