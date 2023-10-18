@@ -1,32 +1,40 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using static UnityEditor.Experimental.GraphView.GraphView;
 
 [RequireComponent(typeof(BoxCollider2D))]
 public class Snake2 : MonoBehaviour
 {
     public Transform segmentPrefab;
     public Vector2Int direction = Vector2Int.left;
-    private float speed = 20f;
-    private float speedMultiplier = 1f;
-    public int initialSize = 4;
+    public float speed = 20f;
+    public float speedMultiplier = 1f;
+    public int initialSize = 6;
     public bool moveThroughWalls = false;
+    public int counter = 0;
     Vector3 startPos = new Vector3(20, 0, 0);
-    public static int playerTwoLives = 3;
+    public int playerTwoLives = 4;
 
     private List<Transform> segments = new List<Transform>();
     private Vector2Int input;
     private float nextUpdate;
     public GameObject player1;
+    private bool isScrambled = false;
+    private float scrambleTimer = 0f;
+    private GameObject[] lives;
 
     private void Start()
     {
         ResetState();
+        lives = GameObject.FindGameObjectsWithTag("PlayerTwoLives");
     }
 
     private void Update()
     {
+        scrambleTimer -= Time.deltaTime;
+        if (scrambleTimer < 0f)
+        {
+            isScrambled = false;
+        }
         // Only allow turning up or down while moving in the x-axis
         if (direction.x != 0f)
         {
@@ -53,6 +61,12 @@ public class Snake2 : MonoBehaviour
         }
     }
 
+    public void Scramble()
+    {
+        isScrambled = true;
+        scrambleTimer = 5.0f;
+    }
+
     private void FixedUpdate()
     {
         // Wait until the next update before proceeding
@@ -64,7 +78,14 @@ public class Snake2 : MonoBehaviour
         // Set the new direction based on the input
         if (input != Vector2Int.zero)
         {
-            direction = input;
+            if (!isScrambled)
+            {
+                direction = input;
+            }
+            else
+            {
+                direction = -input;
+            }
         }
 
         // Set each segment's position to be the same as the one it follows. We
@@ -94,6 +115,16 @@ public class Snake2 : MonoBehaviour
 
     public void ResetState()
     {
+        counter++;
+        GameObject[] gos = GameObject.FindGameObjectsWithTag("SpeedUp");
+        foreach (GameObject go in gos)
+            Destroy(go);
+        gos = GameObject.FindGameObjectsWithTag("PlusThree");
+        foreach (GameObject go in gos)
+            Destroy(go);
+        gos = GameObject.FindGameObjectsWithTag("Scramble");
+        foreach (GameObject go in gos)
+            Destroy(go);
         input = Vector2Int.zero;
         direction = Vector2Int.left;
         transform.position = startPos;
@@ -134,6 +165,31 @@ public class Snake2 : MonoBehaviour
         if (other.gameObject.CompareTag("Food"))
         {
             Grow();
+        }
+        else if (other.gameObject.CompareTag("PlusThree"))
+        {
+            Grow();
+            Grow();
+            Grow();
+            Destroy(other.gameObject);
+        }
+        else if (other.gameObject.CompareTag("Scramble"))
+        {
+            player1.GetComponent<Snake>().Scramble();
+            Destroy(other.gameObject);
+        }
+        else if (other.gameObject.CompareTag("SpeedUp"))
+        {
+            if (speed < 25f)
+            {
+                speed += 5f;
+            }
+            else
+            {
+                Grow();
+                Grow();
+            }
+            Destroy(other.gameObject);
         }
         else if (other.gameObject.CompareTag("Obstacle"))
         {

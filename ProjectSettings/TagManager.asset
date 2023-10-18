@@ -8,6 +8,11 @@ TagManager:
   - Obstacle
   - Wall
   - Player2
+  - PlusThree
+  - SpeedUp
+  - Scramble
+  - PlayerOneLives
+  - PlayerTwoLives
   layers:
   - Default
   - TransparentFX
